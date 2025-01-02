@@ -1,0 +1,658 @@
+package org.example;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class InsertRecord {
+    public static void insertRecord(String objectName) {
+        Scanner sc = new Scanner(System.in);
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v57.0/sobjects/" + objectName;
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(url);
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> payload = new HashMap<>();
+            System.out.print("Enter book name: ");
+            payload.put("Book_Name__c", sc.nextLine());
+            payload.put("About_Author__c", sc.nextLine());
+            payload.put("About_Book__c", sc.nextLine());
+            String jsonPayload = mapper.writeValueAsString(payload);
+
+            post.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            post.setHeader("Content-Type", "application/json");
+            post.setEntity(new StringEntity(jsonPayload));
+
+            try(CloseableHttpResponse response = client.execute(post)) {
+                if (response.getCode() == 201) {
+                    Map<String, String> result = mapper.readValue(response.getEntity().getContent(), Map.class);
+                    System.out.println(result);
+                }
+                else {
+                    throw new RuntimeException("Failed to insert "+response.getCode());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static void insertRecord(String objectName, String bookName) {
+        Scanner sc = new Scanner(System.in);
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v57.0/sobjects/" + objectName;
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(url);
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("book_name__c", bookName);
+            String jsonPayload = mapper.writeValueAsString(payload);
+
+            post.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            post.setHeader("Content-Type", "application/json");
+            post.setEntity(new StringEntity(jsonPayload));
+
+            try(CloseableHttpResponse response = client.execute(post)) {
+                if (response.getCode() == 201) {
+                    Map<String, String> result = mapper.readValue(response.getEntity().getContent(), Map.class);
+                    System.out.println(result);
+                }
+                else {
+                    throw new RuntimeException("Failed to insert "+response.getCode());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+
+
+
+
+
+
+package org.example;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hc.client5.http.classic.methods.HttpPatch;
+import org.apache.hc.client5.http.classic.methods.HttpPut;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+
+public class UpdateRecord {
+    public static void updateRecord(String objectName, String recordId) {
+        Scanner sc = new Scanner(System.in);
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v57.0/sobjects/" + objectName + "/" + recordId;
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPatch patch = new HttpPatch(url);
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("Book_Name__c", sc.nextLine());
+            payload.put("About_Author__c", sc.nextLine());
+
+            payload.put("About_Book__c", sc.nextLine());
+            String jsonPayload = mapper.writeValueAsString(payload);
+            System.out.println(jsonPayload);
+
+            patch.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            patch.setHeader("Content-Type", "application/json");
+            patch.setEntity(new StringEntity(jsonPayload));
+
+            try(CloseableHttpResponse response = client.execute(patch)) {
+                if (response.getCode() == 204) {
+                    System.out.println("Updated value successfully.");
+                } else {
+                    throw new RuntimeException("Failed to update "+response.getCode());
+                }
+            }
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+
+
+
+
+
+
+package org.example;
+
+import org.apache.hc.client5.http.classic.methods.HttpDelete;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+
+import java.io.IOException;
+
+public class DeleteRecord {
+
+    public static void deleteRecord(String objectName, String recordId) {
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v57.0/sobjects/" + objectName +"/"+ recordId;
+
+        try(CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpDelete delete = new HttpDelete(url);
+            delete.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            delete.setHeader("Content-Type", "application/json");
+
+            try(CloseableHttpResponse response = client.execute(delete)) {
+                if (response.getCode() == 204) {
+                    System.out.println("Record "+recordId+" deleted successfully.");
+                } else {
+                    throw new RuntimeException("Failed to delete record"+recordId+" "+response.getCode());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+}
+
+
+
+
+package org.example;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Scanner;
+
+public class BulkInsert {
+
+    public static void bulkInsert(String objectName) {
+        Scanner sc = new Scanner(System.in);
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        ObjectNode root = objectMapper.createObjectNode();
+        ArrayNode compositeRequestArray = root.putArray("compositeRequest");
+
+        boolean takeInput = true;
+        int ref = 1;
+
+        while (takeInput) {
+            System.out.println("1. Add a book\n2. Start inserting");
+            int input = sc.nextInt();
+            sc.nextLine(); // Consume newline
+            switch (input) {
+                case 1:
+                    System.out.print("Enter book name: ");
+                    String bookName = sc.nextLine();
+                    insertRequestBuilder(objectMapper, compositeRequestArray, objectName, bookName, String.valueOf(ref++));
+                    break;
+                case 2:
+                    takeInput = false;
+                    break;
+                default:
+                    System.out.println("Enter a valid input.");
+            }
+        }
+
+        System.out.println("Generated Payload:");
+        try {
+            String jsonPayload = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
+            System.out.println("\nAre you sure you want to insert these records? (1. Yes / 2. No)");
+            int confirmation = sc.nextInt();
+            sc.nextLine(); // Consume newline
+            if (confirmation == 1) {
+                System.out.println("Records are being inserted...");
+                sendInsertRequest(jsonPayload);
+            } else {
+                System.out.println("Records not inserted.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Error generating payload JSON", e);
+        }
+    }
+
+    public static void insertRequestBuilder(ObjectMapper objectMapper, ArrayNode compositeRequestArray, String objectName, String bookName, String ref) {
+        try {
+            ObjectNode insertRequest = compositeRequestArray.addObject();
+            insertRequest.put("method", "POST");
+            insertRequest.put("url", "/services/data/v62.0/sobjects/" + objectName);
+            insertRequest.put("referenceId", ref);
+
+            ObjectNode body = insertRequest.putObject("body");
+            body.put("book_name__c", bookName);
+        } catch (Exception e) {
+            throw new RuntimeException("Error building insert request", e);
+        }
+    }
+
+    public static void sendInsertRequest(String payload) {
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v62.0/composite";
+
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(url);
+            ObjectMapper mapper = new ObjectMapper();
+            post.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            post.setHeader("Content-Type", "application/json");
+            post.setEntity(new StringEntity(payload));
+
+            try (CloseableHttpResponse response = client.execute(post)) {
+                if (response.getCode() == 200) {
+                    Map<String, Object> result = mapper.readValue(response.getEntity().getContent(), Map.class);
+                    System.out.println(result);
+                } else {
+                    throw new RuntimeException("Failed to insert! "+response.getCode());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+
+
+package org.example;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Scanner;
+
+public class BulkDelete {
+    public static void bulkDelete(String objectName) {
+        try {
+            Scanner sc = new Scanner(System.in);
+            ObjectMapper mapper = new ObjectMapper();
+            ObjectNode rootNode = mapper.createObjectNode();
+            rootNode.put("allOrNone", true);
+            ArrayNode compositeRequestArray = mapper.createArrayNode();
+
+            boolean takeInput = true;
+            int ref = 1;
+            while(takeInput) {
+                System.out.println("1. Add a record to the delete list\n2. Start deleting");
+                int input = sc.nextInt();
+                sc.nextLine();
+                switch (input) {
+                    case 1:
+                        System.out.print("Enter a record ID: ");
+                        String recordId = sc.nextLine();
+                        ObjectNode deleteRequest = mapper.createObjectNode();
+                        compositeRequestArray.add(deleteRequestBuilder(deleteRequest, objectName, recordId, String.valueOf(ref++)));
+                        break;
+                    case 2:
+                        takeInput = false;
+                    default:
+                        System.out.println("Enter a valid input");
+                }
+            }
+            rootNode.set("compositeRequest", compositeRequestArray);
+            String payload = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(rootNode);
+            sendDeleteRequest(payload);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static ObjectNode deleteRequestBuilder(ObjectNode deleteRequest, String objectName, String recordId, String ref) {
+        deleteRequest.put("method", "DELETE");
+        deleteRequest.put("url", "/services/data/v62.0/sobjects/"+objectName+"/"+recordId);
+        deleteRequest.put("referenceId", ref);
+        return deleteRequest;
+    }
+
+    public static void sendDeleteRequest(String payload) {
+        String url = TokenAndUrlSetter.getInstanceUrl() + "/services/data/v62.0/composite";
+
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(url);
+            ObjectMapper mapper = new ObjectMapper();
+            post.setHeader("Authorization", "Bearer " + TokenAndUrlSetter.getAccessToken());
+            post.setHeader("Content-Type", "application/json");
+            post.setEntity(new StringEntity(payload));
+
+            try (CloseableHttpResponse response = client.execute(post)) {
+                if (response.getCode() == 200) {
+                    Map<String, Object> result = mapper.readValue(response.getEntity().getContent(), Map.class);
+                    System.out.println(result);
+                } else {
+                    throw new RuntimeException("Failed to delete! "+response.getCode());
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+
+
+
+
+package org.example;
+
+public class Credentials {
+    public static final String USERNAME = "kkirankumar2727@gmail.com";
+    public static final String PASSWORD = "Kiran509@1ZHq7CPKe9lBcZdWgvKmCcSqdO";
+    public static final String CLIENT_ID = "3MVG9GCMQoQ6rpzRVBi7qvvZNOoNPHStmLqTPNu7_EfNP_JpalpW0Gpl7cqMfHfDipXpRj1n.bwxOAnu3Uqra";
+    public static final String CLIENT_SECRET = "7B994F842A4499DB675C1DF32361391D1BAC7825C654A5D7D8BD4466DB2F806C";
+    public static final String OBJECT_ID = "Book__c";
+    public static final String LOGIN_URL = "https://login.salesforce.com/services/oauth2/token";
+
+}
+
+
+
+
+
+
+package org.example;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+
+public class Authentication {
+
+    public static void authenticate(String clientId, String clientSecret, String userName, String password) {
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost post = new HttpPost(Credentials.LOGIN_URL);
+            String payload = "grant_type=password&client_id=" + clientId +
+                    "&client_secret=" + clientSecret +
+                    "&username=" + userName +
+                    "&password=" + password;
+//            String payload = "grant_type=password&client_id=3MVG9GCMQoQ6rpzRVBi7qvvZNOoNPHStmLqTPNu7_EfNP_JpalpW0Gpl7cqMfHfDipXpRj1n.bwxOAnu3Uqra&client_secret=7B994F842A4499DB675C1DF32361391D1BAC7825C654A5D7D8BD4466DB2F806C&username=kkirankumar2727%40gmail.com&password=Kiran509%401ZHq7CPKe9lBcZdWgvKmCcSqdO";
+            System.out.println("Payload: " + payload);
+            post.setEntity(new StringEntity(payload));
+            post.setHeader("Content-Type", "application/x-www-form-urlencoded");
+
+            try (CloseableHttpResponse response = client.execute(post)) {
+                int statusCode = response.getCode();
+                System.out.println("Response Status Code: " + statusCode);
+
+                if (statusCode == 200) {
+                    // Ensure the response entity is not null and contains data
+                    if (response.getEntity() != null) {
+                        try (InputStream inputStream = response.getEntity().getContent()) {
+                            // Map the JSON response to a Map<String, String>
+                            ObjectMapper mapper = new ObjectMapper();
+                            Map<String, String> result = mapper.readValue(inputStream, Map.class);
+
+                            // Retrieve the values from the JSON response
+                            String accessToken = result.get("access_token");
+                            String instanceUrl = result.get("instance_url");
+
+                            // Set the access token and instance URL
+                            TokenAndUrlSetter.setAccessToken(accessToken);
+                            TokenAndUrlSetter.setInstanceUrl(instanceUrl);
+
+                            System.out.println("Authentication successful!");
+                        } catch (IOException e) {
+                            System.out.println("Error while parsing the response: " + e.getMessage());
+                            e.printStackTrace();
+                        }
+                    } else {
+                        System.out.println("No response entity found!");
+                    }
+                } else {
+                    System.out.println("Authentication failed. HTTP Status: " + statusCode);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error during authentication: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+package org.example;
+
+public class CustomObjectGetAndSet {
+    private String id;
+    private String ownerId;
+    private boolean isDeleted;
+    private String name;
+    private String createdDate;
+    private String createdById;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(String ownerId) {
+        this.ownerId = ownerId;
+    }
+
+    public boolean isDeleted() {
+        return isDeleted;
+    }
+
+    public void setDeleted(Boolean deleted) {
+        isDeleted = deleted;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCreatedDate() {
+        return createdDate;
+    }
+
+    public void setCreatedDate(String createdDate) {
+        this.createdDate = createdDate;
+    }
+
+    public String getCreatedById() {
+        return createdById;
+    }
+
+    public void setCreatedById(String createdById) {
+        this.createdById = createdById;
+    }
+}
+
+
+
+package org.example;
+
+public class CustomObjectGetAndSetForAll {
+    private String id; // Change "Id" to "id"
+    private String Name;
+    private String book_name__c;
+    private Attributes attributes;
+
+    // Getters and setters
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return Name;
+    }
+
+    public void setName(String name) {
+        Name = name;
+    }
+
+    public String getBook_name__c() {
+        return book_name__c;
+    }
+
+    public void setBook_name__c(String book_name__c) {
+        this.book_name__c = book_name__c;
+    }
+
+    public Attributes getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(Attributes attributes) {
+        this.attributes = attributes;
+    }
+
+    @Override
+    public String toString() {
+        return "CustomObjectGetAndSet{" +
+                "id='" + id + '\'' +
+                ", Name='" + Name + '\'' +
+                ", book_name__c='" + book_name__c + '\'' +
+                ", attributes=" + attributes +
+                '}';
+    }
+
+    // Inner class for 'attributes'
+    public static class Attributes {
+        private String type;
+        private String url;
+
+        // Getters and setters
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public String getUrl() {
+            return url;
+        }
+
+        public void setUrl(String url) {
+            this.url = url;
+        }
+
+        @Override
+        public String toString() {
+            return "Attributes{" +
+                    "type='" + type + '\'' +
+                    ", url='" + url + '\'' +
+                    '}';
+        }
+    }
+}
+
+
+
+package org.example;
+
+public class TokenAndUrlSetter {
+    private static String accessToken;
+    private static String instanceUrl;
+
+    public static String getAccessToken() {
+        return accessToken;
+    }
+
+    public static void setAccessToken(String accessToken) {
+        TokenAndUrlSetter.accessToken = accessToken;
+    }
+
+    public static String getInstanceUrl() {
+        return instanceUrl;
+    }
+
+    public static void setInstanceUrl(String instanceUrl) {
+        TokenAndUrlSetter.instanceUrl = instanceUrl;
+    }
+}
+
+
+
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>org.example</groupId>
+    <artifactId>SalesforceExampleREST</artifactId>
+    <version>1.0-SNAPSHOT</version>
+
+    <properties>
+        <maven.compiler.source>23</maven.compiler.source>
+        <maven.compiler.target>23</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.15.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+            <version>5.2.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
+            <version>2.20.0</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
+
+
+
+
+
